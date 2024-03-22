@@ -4,7 +4,7 @@ from settings import *
 class Player(pygame.sprite.Sprite):
     def __init__ (self, pos, groups, obstacle_sprites, interactable_sprites):
         super().__init__(groups)
-        self.image = pygame.image.load('./assets/images/hero_basic.png').convert_alpha()
+        self.image = pygame.image.load('./assets/images/npc_dwarf.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
         self.rect = self.image.get_rect(topleft = pos)
         self.hitbox = self.rect
