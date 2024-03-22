@@ -1,4 +1,5 @@
 import pygame
+from entities.bullet import Bullet
 from settings import *
 from entities.tiles import Ground, Wall, TestInteractable, Chest, GoldenChest
 from entities.player import Player
@@ -27,7 +28,7 @@ class Level:
                 if col == 'w':
                     Wall((x, y), [self.visible_sprites, self.obstacle_sprites])
                 if col == 'p':
-                    self.player = Player((x, y), [self.visible_sprites], self.obstacle_sprites, self.interactable_sprites)
+                    self.player = Player((x, y), [self.visible_sprites], self, self.obstacle_sprites, self.interactable_sprites)
                 if col == "t":
                     TestInteractable((x, y), [self.visible_sprites, self.interactable_sprites])
                 if col == "c":
@@ -35,7 +36,8 @@ class Level:
                 if col == "g":
                     GoldenChest((x, y), [self.visible_sprites, self.interactable_sprites])
                     
-
+    def spawn_bullet(self, pos, dir):
+        Bullet(pos, [self.visible_sprites], dir)
     def run(self):
         # update and draw game
         self.visible_sprites.custom_draw(self.player)

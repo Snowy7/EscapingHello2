@@ -1,9 +1,12 @@
+import math
 import pygame
 from settings import *
+from entities.bullet import Bullet
 
 class Player(pygame.sprite.Sprite):
-    def __init__ (self, pos, groups, obstacle_sprites, interactable_sprites):
+    def __init__ (self, pos, groups, level, obstacle_sprites, interactable_sprites):
         super().__init__(groups)
+        self.level = level
         self.image = pygame.image.load('./assets/images/hero_basic.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
         self.rect = self.image.get_rect(topleft = pos)
@@ -23,7 +26,7 @@ class Player(pygame.sprite.Sprite):
         self.lookDir = 0
         self.order = 10
         self.isJumping = False
-        
+        self.mouse_click = False
         self.m = 1
         self.v = 10
 
@@ -41,7 +44,21 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = -1
         else:
             self.direction.x = 0
-
+            
+        # on Mouse Click
+        if pygame.mouse.get_pressed()[0]:
+            if self.mouse_click:
+                return 
+            self.mouse_click = True
+            mouse_pos = pygame.mouse.get_pos()
+            # player always on the center of the screen
+            mx = mouse_pos[0] - WIDTH // 2
+            my = mouse_pos[1] - HEIGHT // 2
+            dirction = pygame.math.Vector2(mx, my)
+            self.level.spawn_bullet(self.rect.center, dirction.normalize())
+            
+        else:
+            self.mouse_click = False
             
     def gravity(self):
         #if not self.isJumping:
