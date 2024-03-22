@@ -24,8 +24,6 @@ class Level:
                 x = col_index * TILESIZE
                 y = row_index * TILESIZE
                 
-                Ground((x, y), [self.visible_sprites, self.background_sprites])
-
                 if col == 'w':
                     Wall((x, y), [self.visible_sprites, self.obstacle_sprites])
                 if col == 'p':

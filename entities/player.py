@@ -8,27 +8,32 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
         self.rect = self.image.get_rect(topleft = pos)
         self.hitbox = self.rect
+        self.groundHitbox = self.hitbox 
+        self.groundHitbox.y += 1
 
         self.direction = pygame.math.Vector2()
-        self.speed = 5
+        self.speed = 15
 
         self.obstacle_sprites = obstacle_sprites
         self.interactable_sprites = interactable_sprites
         
         self.lastInteracted = None
         self.didPressE = False
+        self.isGrounded = False
         self.lookDir = 0
         self.order = 10
+        self.isJumping = False
+        
+        self.m = 1
+        self.v = 10
 
     def input(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_UP]:
-            self.direction.y = -1
-        elif keys[pygame.K_DOWN]:
-            self.direction.y = 1
-        else:
-            self.direction.y = 0
+        if keys[pygame.K_SPACE]:
+            #self.direction.y = -1
+           if self.isGrounded: 
+               self.isJumping = True
 
         if keys[pygame.K_RIGHT]:
             self.direction.x = 1
@@ -37,13 +42,49 @@ class Player(pygame.sprite.Sprite):
         else:
             self.direction.x = 0
 
+            
+    def gravity(self):
+        #if not self.isJumping:
+        if not self.isJumping:
+            self.direction.y += GRAVITY
+        
+    def jump(self, y):
+        if self.isJumping:
+            k = .5*self.m*self.v**2
+            y -= k
+            self.v -= 1
+            
+            if self.v < 0:
+                self.m -=1
+                
+            if self.v == -5:
+                self.m = 1
+                self.v = 10
+                self.isJumping = False
+            
+        return y
+        
+        
+    def checkGrounded(self):
+        grounded = False
+        
+        for sprite in self.obstacle_sprites:
+            if sprite.rect.collidepoint(self.rect.centerx, self.rect.bottom+4):
+                grounded = True
+                break
+                
+        self.isGrounded = grounded
+
     def move(self, speed):
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
 
+        self.checkGrounded()
+        self.gravity()
+
         self.hitbox.x += self.direction.x * speed
         self.collision('horizontal')
-        self.hitbox.y += self.direction.y * speed
+        self.hitbox.y = self.direction.y * speed + self.jump(self.hitbox.y)
         self.collision('vertical')
         self.rect.center = self.hitbox.center
         
@@ -97,6 +138,10 @@ class Player(pygame.sprite.Sprite):
                     self.didPressE = True
             else:
                 self.didPressE = False
+                
+    def disableGravityFor(self, time = 0.5):
+        self.gravityDisabled = True
+        
             
     def update(self):
          self.input()
