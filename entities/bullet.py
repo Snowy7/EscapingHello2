@@ -12,8 +12,8 @@ class Bullet(pygame.sprite.Sprite):
         
     def update(self):
         
-        self.rect.x += self.direction.x * 10
-        self.rect.y += self.direction.y * 10
+        self.rect.x += self.direction.x * 50
+        self.rect.y += self.direction.y * 50
         
         
         

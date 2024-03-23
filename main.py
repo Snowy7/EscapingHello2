@@ -15,6 +15,12 @@ class Game:
         self.clock = pygame.time.Clock()
         self.level = Level()
         
+        # change cursor
+        pygame.mouse.set_visible(False)
+        self.cursor = pygame.image.load('./assets/images/aim.png').convert_alpha()
+        self.cursor = pygame.transform.scale(self.cursor, (32, 32))
+        
+        
     def run(self):
         # while True: to keep it running until the user quits
         while True:
@@ -26,6 +32,10 @@ class Game:
             
             self.screen.fill('#1c1117') # rgb(28, 17, 23)
             self.level.run()
+            
+            # draw cursor
+            self.screen.blit(self.cursor, pygame.mouse.get_pos())
+            
             pygame.display.update()
             self.clock.tick(FPS) 
 
