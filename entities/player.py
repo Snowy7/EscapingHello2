@@ -172,6 +172,7 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.input()
         self.move(self.speed)
+        
          
         # rotate weapon
         #angle = math.degrees(math.atan2(self.shootingDirection.y, self.shootingDirection.x))

@@ -56,7 +56,7 @@ class Level:
         elif self.gameState == 1:
             self.Game()
         elif self.gameState == 2:
-            pass
+            self.GameOver()
         #etc..
         
     def MainMenu(self, events):
@@ -94,6 +94,38 @@ class Level:
         # update and draw game
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        
+        print(self.player.hitbox.centery)
+        if self.player.hitbox.centery >= 1270:
+            self.gameState = 2
+            
+        
+    def GameOver(self):
+        print('Game over!')
+    
+        # Reset game variables
+        self.mainMenuSelectedItem = 0
+        self.visible_sprites = YSortCameraGroup()
+        self.obstacle_sprites = pygame.sprite.Group()
+        self.interactable_sprites = pygame.sprite.Group()
+        self.background_sprites = pygame.sprite.Group()
+
+        # Game over screen
+        game_over_font = pygame.font.Font(None, 60)
+        game_over_text = game_over_font.render('Game Over', True, (255, 0, 0))
+        game_over_rect = game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+
+        # Display game over screen
+        self.display_surface.blit(game_over_text, game_over_rect)
+        pygame.display.flip()
+
+        # Wait for a few seconds before restarting the game
+        pygame.time.wait(2000)  # 2000 milliseconds = 2 seconds
+
+        # Restart the game
+        self.gameState = 0
+
+
         
 
 
