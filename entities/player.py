@@ -9,12 +9,19 @@ class Player(pygame.sprite.Sprite):
         self.level = level
         self.image = pygame.image.load('./assets/images/hero_basic.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
+        
+        # add a weapon
+        self.weapon = pygame.image.load('./assets/images/rifle.png').convert_alpha()
+        self.weapon = pygame.transform.scale(self.weapon, (TILESIZE, TILESIZE))
+        self.weaponRect = self.weapon.get_rect(topleft = pos)
+        
         self.rect = self.image.get_rect(topleft = pos)
         self.hitbox = self.rect
         self.groundHitbox = self.hitbox 
         self.groundHitbox.y += 1
 
         self.direction = pygame.math.Vector2()
+        self.shootingDirection = pygame.math.Vector2()
         self.speed = 15
 
         self.obstacle_sprites = obstacle_sprites
@@ -28,7 +35,7 @@ class Player(pygame.sprite.Sprite):
         self.isJumping = False
         self.mouse_click = False
         self.m = 1
-        self.v = 10
+        self.v = 15
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -38,45 +45,50 @@ class Player(pygame.sprite.Sprite):
            if self.isGrounded: 
                self.isJumping = True
 
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_d]:
             self.direction.x = 1
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_a]:
             self.direction.x = -1
         else:
             self.direction.x = 0
-            
+        
+        # player always on the center of the screen
+        mouse_pos = pygame.mouse.get_pos()
+        mx = mouse_pos[0] - WIDTH // 2
+        my = mouse_pos[1] - HEIGHT // 2
+        self.shootingDirection = pygame.math.Vector2(mx, my).normalize()
+        
+    
+        
         # on Mouse Click
         if pygame.mouse.get_pressed()[0]:
             if self.mouse_click:
                 return 
             self.mouse_click = True
-            mouse_pos = pygame.mouse.get_pos()
-            # player always on the center of the screen
-            mx = mouse_pos[0] - WIDTH // 2
-            my = mouse_pos[1] - HEIGHT // 2
-            dirction = pygame.math.Vector2(mx, my)
-            self.level.spawn_bullet(self.rect.center, dirction.normalize())
+            self.level.spawn_bullet(self.rect.center, self.shootingDirection)
             
         else:
             self.mouse_click = False
             
     def gravity(self):
         #if not self.isJumping:
+        if self.isGrounded:
+            self.direction.y = GRAVITY
         if not self.isJumping:
             self.direction.y += GRAVITY
         
     def jump(self, y):
         if self.isJumping:
-            k = .5*self.m*self.v**2
+            k = .5*self.m*self.v**1.9          
             y -= k
             self.v -= 1
             
             if self.v < 0:
                 self.m -=1
                 
-            if self.v == -5:
+            if self.v == -1:
                 self.m = 1
-                self.v = 10
+                self.v = 15
                 self.isJumping = False
             
         return y
@@ -128,8 +140,8 @@ class Player(pygame.sprite.Sprite):
                 if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction.y > 0:  # moving down
                         self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0:  # moving up
-                        self.hitbox.top = sprite.hitbox.bottom
+                    if self.direction.y < 0 or self.isJumping:
+                        self.hitbox.top = sprite.hitbox.bottom                  
 
     def Interact(self):
         isInteracting = False
@@ -155,11 +167,19 @@ class Player(pygame.sprite.Sprite):
                     self.didPressE = True
             else:
                 self.didPressE = False
-                
-    def disableGravityFor(self, time = 0.5):
-        self.gravityDisabled = True
         
             
     def update(self):
-         self.input()
-         self.move(self.speed)
+        self.input()
+        self.move(self.speed)
+         
+        # rotate weapon
+        #angle = math.degrees(math.atan2(self.shootingDirection.y, self.shootingDirection.x))
+        #self.weapon = pygame.transform.rotate(self.weapon, angle)
+        
+    def displayWeapon(self, surf, pos, angle):
+
+        rotated_image = pygame.transform.rotate(self.weapon, angle)
+        new_rect = rotated_image.get_rect(center = self.weapon.get_rect(topleft = pos).center)
+
+        surf.blit(rotated_image, new_rect)

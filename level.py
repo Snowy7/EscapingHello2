@@ -1,3 +1,4 @@
+import math
 import pygame
 from entities.bullet import Bullet
 from settings import *
@@ -63,7 +64,7 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.offset.y = player.rect.centery - self.half_height
         
         sprites_to_draw = []
-
+    
         #for sprite in self.sprites():
         for sprite in sorted(self.sprites(), key = lambda sprite: sprite.rect.centery):
             offset_post = sprite.rect.topleft - self.offset
@@ -74,3 +75,14 @@ class YSortCameraGroup(pygame.sprite.Group):
         
         for sprite, offset_post in sprites_to_draw:
             self.display_surface.blit(sprite.image, offset_post)
+            
+        # draw player's weapon
+        # ROTATE THE WEAPON
+        
+        angle = player.shootingDirection.angle_to(pygame.math.Vector2(1, 0))
+        
+        pos = (self.half_with - TILESIZE // 2) + 10, (self.half_height - TILESIZE // 2) + 10
+        player.displayWeapon(self.display_surface, pos, angle)
+
+            
+        
