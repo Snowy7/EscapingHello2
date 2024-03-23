@@ -54,7 +54,6 @@ class Wall():
         ]
         center = Tile("./assets/images/wall_center.png", pos, groups)
         top = Tile("./assets/images/Wall_top_center.png", (pos[0], pos[1] - TILESIZE), [groups[0]])
-        stain = Tile(stain_images[pygame.time.get_ticks() % len(stain_images)], (pos[0], pos[1] + TILESIZE), [groups[0]])
 
 class TestInteractable(Interactable):
     def __init__(self, pos, groups):
