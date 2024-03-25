@@ -2,7 +2,7 @@ from spritesheet import *
 import pygame
 from settings import *
 
-class Player(pygame.sprite.Sprite):
+class Enemy(pygame.sprite.Sprite):
     def __init__ (self, pos, groups, level, obstacle_sprites, interactable_sprites):
         super().__init__(groups)
         self.level = level
@@ -41,37 +41,9 @@ class Player(pygame.sprite.Sprite):
         self.v = 15
 
     def input(self):
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_SPACE]:
-            #self.direction.y = -1
-           if self.isGrounded: 
-               self.isJumping = True
-
-        if keys[pygame.K_d]:
-            self.direction.x = 1
-        elif keys[pygame.K_a]:
-            self.direction.x = -1
-        else:
-            self.direction.x = 0
+        # enemy AI
         
-        # player always on the center of the screen
-        mouse_pos = pygame.mouse.get_pos()
-        mx = mouse_pos[0] - WIDTH // 2
-        my = mouse_pos[1] - HEIGHT // 2
-        self.shootingDirection = pygame.math.Vector2(mx, my).normalize()
-        
-    
-        
-        # on Mouse Click
-        if pygame.mouse.get_pressed()[0]:
-            if self.mouse_click:
-                return 
-            self.mouse_click = True
-            self.level.spawn_bullet(self.rect.center, self.shootingDirection)
-            
-        else:
-            self.mouse_click = False
+        pass
             
     def gravity(self):
         #if not self.isJumping:
@@ -126,7 +98,6 @@ class Player(pygame.sprite.Sprite):
         elif self.direction.x > 0 and self.lookDir == 1:                
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.lookDir = 0
-        self.Interact()
 
     def collision(self, direction):
         if direction == 'horizontal':
@@ -144,32 +115,7 @@ class Player(pygame.sprite.Sprite):
                         self.hitbox.bottom = sprite.hitbox.top
                     if self.direction.y < 0 or self.isJumping:
                         self.hitbox.top = sprite.hitbox.bottom                  
-
-    def Interact(self):
-        isInteracting = False
-        targetSprite = None
-        for sprite in self.interactable_sprites:
-            if sprite.hitbox.colliderect(self.hitbox) and sprite.canInteract:
-                isInteracting = True
-                targetSprite = sprite
-                break
-            
-        if isInteracting:
-            # Draw "Press E to interact" on the screen
-            wind = pygame.display.get_surface()
-            font = pygame.font.Font(None, 36)
-            text = font.render("Press E to interact", True, 'white')
-            wind.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT - 100))
-            # Check if E is down only once NOT HOLDING
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_e]:
-                if not self.didPressE:
-                    targetSprite.interact()
-                    self.lastInteracted = targetSprite
-                    self.didPressE = True
-            else:
-                self.didPressE = False
-        
+                        
     def update(self):
         self.input()
         self.move(self.speed)
