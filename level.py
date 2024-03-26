@@ -3,7 +3,7 @@ import sys
 import pygame
 from entities.bullet import Bullet
 from settings import *
-from entities.tiles import Ground, Wall, TestInteractable, Chest, GoldenChest
+from entities.tiles import Ground, Wall, TestInteractable, Chest, GoldenChest, Wall2
 from entities.player import Player
 
 class Level:
@@ -47,7 +47,8 @@ class Level:
                     Chest((x, y), [self.visible_sprites, self.interactable_sprites])
                 if col == "g":
                     GoldenChest((x, y), [self.visible_sprites, self.interactable_sprites])
-                    
+                if col == 'g':
+                    Ground((x, y), [self.visible_sprites, self.obstacle_sprites])
     def spawn_bullet(self, pos, dir):
         Bullet(pos, [self.visible_sprites], dir)
     def run(self, events):
@@ -96,7 +97,7 @@ class Level:
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
         
-        if self.player.hitbox.centery >= 1270:
+        if self.player.hitbox.centery >= 3000:
             self.gameState = 2
             
         
