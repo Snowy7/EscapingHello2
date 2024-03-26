@@ -1,4 +1,5 @@
 import math
+import sys
 import pygame
 from entities.bullet import Bullet
 from settings import *
@@ -7,6 +8,16 @@ from entities.player import Player
 
 class Level:
     def __init__(self):
+        
+        # 0 => MainMenu
+        # 1 => Game
+        # 2 => GameOver
+        # 3 => Win
+        # 4 => Pause
+        self.gameState = 0
+        
+        self.mainMenuSelectedItem = 0
+        
         # get the display surface 
         self.display_surface = pygame.display.get_surface()
     
@@ -18,7 +29,7 @@ class Level:
         self.background_sprites = pygame.sprite.Group()
 
         # sprite set up
-        self.create_map()
+        #self.create_map()
 
     def create_map(self):
         for row_index, row in enumerate(WORLD_MAP):
@@ -39,10 +50,82 @@ class Level:
                     
     def spawn_bullet(self, pos, dir):
         Bullet(pos, [self.visible_sprites], dir)
-    def run(self):
+    def run(self, events):
+        if self.gameState == 0:
+            self.MainMenu(events)
+        elif self.gameState == 1:
+            self.Game()
+        elif self.gameState == 2:
+            self.GameOver()
+        #etc..
+        
+    def MainMenu(self, events):
+        menu_items = ['Start Game', 'Options', 'Quit']
+        
+        # input
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    self.mainMenuSelectedItem = (self.mainMenuSelectedItem - 1) % len(menu_items)
+                elif event.key == pygame.K_DOWN:
+                    self.mainMenuSelectedItem = (self.mainMenuSelectedItem + 1) % len(menu_items)
+                elif event.key == pygame.K_RETURN:
+                    if self.mainMenuSelectedItem == 0:
+                        self.StartGame()
+                    elif self.mainMenuSelectedItem == 1:
+                        print("Options yay!")
+                    elif self.mainMenuSelectedItem == 2:
+                        pygame.quit()
+                        sys.exit()
+                
+        
+        
+        font = pygame.font.Font(None, 40)
+        for index, item in enumerate(menu_items):
+            text = font.render(item, True, (255, 0, 0) if index == self.mainMenuSelectedItem else (255, 255, 255))
+            text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + index * 50))
+            
+            self.display_surface.blit(text, text_rect)
+    
+    def StartGame(self):
+        self.create_map()
+        self.gameState = 1
+    
+    def Game(self):
         # update and draw game
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        
+        if self.player.hitbox.centery >= 1270:
+            self.gameState = 2
+            
+        
+    def GameOver(self):
+        print('Game over!')
+    
+        # Reset game variables
+        self.mainMenuSelectedItem = 0
+        self.visible_sprites = YSortCameraGroup()
+        self.obstacle_sprites = pygame.sprite.Group()
+        self.interactable_sprites = pygame.sprite.Group()
+        self.background_sprites = pygame.sprite.Group()
+
+        # Game over screen
+        game_over_font = pygame.font.Font(None, 60)
+        game_over_text = game_over_font.render('Game Over', True, (255, 0, 0))
+        game_over_rect = game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+
+        # Display game over screen
+        self.display_surface.blit(game_over_text, game_over_rect)
+        pygame.display.flip()
+
+        # Wait for a few seconds before restarting the game
+        pygame.time.wait(2000)  # 2000 milliseconds = 2 seconds
+
+        # Restart the game
+        self.gameState = 0
+
+
         
 
 
@@ -74,6 +157,7 @@ class YSortCameraGroup(pygame.sprite.Group):
         sprites_to_draw.sort(key = lambda sprite: sprite[0].order)
         
         for sprite, offset_post in sprites_to_draw:
+            sprite.image.set_colorkey((0, 0, 0))
             self.display_surface.blit(sprite.image, offset_post)
             
         # draw player's weapon
@@ -82,7 +166,8 @@ class YSortCameraGroup(pygame.sprite.Group):
         angle = player.shootingDirection.angle_to(pygame.math.Vector2(1, 0))
         
         pos = (self.half_with - TILESIZE // 2) + 10, (self.half_height - TILESIZE // 2) + 10
-        player.displayWeapon(self.display_surface, pos, angle)
+        #player.displayWeapon(self.display_surface, pos, angle)
+        
 
             
         

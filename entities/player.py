@@ -1,14 +1,43 @@
+from entities.bullet import Bullet
 from spritesheet import *
 import pygame
 from settings import *
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, path, offset, w_h, scale, framesCount):
+        super().__init__()
+        
+        self.anim = SpriteSheet(pygame.image.load(path))
+        self.frames = [
+            self.anim.get_image(i, offset, w_h, scale) for i in range(framesCount)
+        ]
+        self.image = self.frames[0]
+        self.current_frame = 0
+        self.last_update = 0
+        self.frame_rate = 60
+    
+    def animate(self, dir):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            self.image = self.frames[self.current_frame]
+            
+            if dir == 0:
+                self.image = pygame.transform.flip(self.image, True, False)
+        
+
 class Player(pygame.sprite.Sprite):
     def __init__ (self, pos, groups, level, obstacle_sprites, interactable_sprites):
         super().__init__(groups)
+        self.visible_sprites = groups[0]
         self.level = level
         
-        self.anim_wake = SpriteSheet(pygame.image.load("./assets/player/wake.png").convert_alpha())
-        self.idle = self.anim_wake.get_image(4, 26, 24, 2)
+        self.anim_wake = SpriteSheet(pygame.image.load("./assets/player/wake.png"))
+        
+        self.idle = self.anim_wake.get_image(4, (8, 0), (30, 26), 2)
+        
+        self.walk = AnimatedSprite("./assets/player/move with FX.png", (0, 0), (42, 26), 2, 8)
         
         self.image = self.idle
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
@@ -33,12 +62,13 @@ class Player(pygame.sprite.Sprite):
         self.lastInteracted = None
         self.didPressE = False
         self.isGrounded = False
-        self.lookDir = 0
+        self.lookDir = 1
         self.order = 10
         self.isJumping = False
         self.mouse_click = False
         self.m = 1
         self.v = 15
+        self.isMoving = False
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -54,21 +84,21 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = -1
         else:
             self.direction.x = 0
+            
+        self.isMoving = self.direction.x != 0
         
-        # player always on the center of the screen
-        mouse_pos = pygame.mouse.get_pos()
-        mx = mouse_pos[0] - WIDTH // 2
-        my = mouse_pos[1] - HEIGHT // 2
-        self.shootingDirection = pygame.math.Vector2(mx, my).normalize()
-        
-    
+        # set the shooting direction depending on where the player is looking
+        if self.lookDir == 0:
+            self.shootingDirection = pygame.math.Vector2(-1, 0)
+        elif self.lookDir == 1:
+            self.shootingDirection = pygame.math.Vector2(1, 0)
         
         # on Mouse Click
         if pygame.mouse.get_pressed()[0]:
             if self.mouse_click:
                 return 
             self.mouse_click = True
-            self.level.spawn_bullet(self.rect.center, self.shootingDirection)
+            self.shoot()
             
         else:
             self.mouse_click = False
@@ -96,6 +126,15 @@ class Player(pygame.sprite.Sprite):
             
         return y  
         
+    def shoot(self):
+        # bullet pos is the player pos + some offset to the right or left depending on the direction
+        pos = (self.rect.left, self.rect.centery - 5)
+        if self.lookDir == 0:
+            pos = (self.rect.left - (TILESIZE/2 - 20), self.rect.centery - 5)
+        else:
+            pos = (self.rect.left + TILESIZE, self.rect.centery - 5)
+        Bullet(pos, [self.visible_sprites], self.shootingDirection)
+        
     def checkGrounded(self):
         grounded = False
         
@@ -119,13 +158,7 @@ class Player(pygame.sprite.Sprite):
         self.collision('vertical')
         self.rect.center = self.hitbox.center
         
-        # inverse image if moving left
-        if self.direction.x < 0 and self.lookDir == 0:
-            self.image = pygame.transform.flip(self.image, True, False)
-            self.lookDir = 1
-        elif self.direction.x > 0 and self.lookDir == 1:                
-                self.image = pygame.transform.flip(self.image, True, False)
-                self.lookDir = 0
+        
         self.Interact()
 
     def collision(self, direction):
@@ -171,16 +204,24 @@ class Player(pygame.sprite.Sprite):
                 self.didPressE = False
         
     def update(self):
-        self.input()
+        self.input() 
         self.move(self.speed)
-         
-        # rotate weapon
-        #angle = math.degrees(math.atan2(self.shootingDirection.y, self.shootingDirection.x))
-        #self.weapon = pygame.transform.rotate(self.weapon, angle)
         
-    def displayWeapon(self, surf, pos, angle):
-
-        rotated_image = pygame.transform.rotate(self.weapon, angle)
-        new_rect = rotated_image.get_rect(center = self.weapon.get_rect(topleft = pos).center)
-
-        surf.blit(rotated_image, new_rect)
+        if self.isMoving:
+            self.walk.animate(self.lookDir)
+            self.image = self.walk.image
+        else:
+            self.image = self.idle
+            if self.lookDir == 0:
+                self.image = pygame.transform.flip(self.image, True, False)
+            
+            
+        # inverse image if moving left
+        # print(self.direction.x, self.lookDir)
+        if self.direction.x < 0 and self.lookDir == 1:
+            #self.image = pygame.transform.flip(self.image, True, False)
+            self.lookDir = 0
+        elif self.direction.x > 0 and self.lookDir == 0:                
+            #self.image = pygame.transform.flip(self.image, True, False)
+            self.lookDir = 1
+        

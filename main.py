@@ -25,13 +25,14 @@ class Game:
         # while True: to keep it running until the user quits
         while True:
             # hazard: this handles the game quit buttons (do not remove)
-            for event in pygame.event.get():
+            events = pygame.event.get()
+            for event in events:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
             
             self.screen.fill('#1c1117') # rgb(28, 17, 23)
-            self.level.run()
+            self.level.run(events)
             
             # draw cursor
             self.screen.blit(self.cursor, pygame.mouse.get_pos())
