@@ -5,6 +5,7 @@ from entities.bullet import Bullet
 from settings import *
 from entities.tiles import Ground, Wall, TestInteractable, Chest, GoldenChest, Wall2
 from entities.player import Player
+from entities.enemy import Enemy
 
 class Level:
     def __init__(self):
@@ -49,6 +50,12 @@ class Level:
                     GoldenChest((x, y), [self.visible_sprites, self.interactable_sprites])
                 if col == 'g':
                     Ground((x, y), [self.visible_sprites, self.obstacle_sprites])
+                if col == 'z':
+                    self.enemy = Enemy(x, y, self.obstacle_sprites)
+                
+
+
+
     def spawn_bullet(self, pos, dir):
         Bullet(pos, [self.visible_sprites], dir)
     def run(self, events):
@@ -95,8 +102,8 @@ class Level:
     def Game(self):
         # update and draw game
         self.visible_sprites.custom_draw(self.player)
+        self.visible_sprites.custom_draw_z(self.enemy)
         self.visible_sprites.update()
-        
         if self.player.hitbox.centery >= 3000:
             self.gameState = 2
             
@@ -127,7 +134,7 @@ class Level:
         self.gameState = 0
 
 
-        
+zombie_group = pygame.sprite.Group()           
 
 
 class YSortCameraGroup(pygame.sprite.Group):
@@ -169,6 +176,21 @@ class YSortCameraGroup(pygame.sprite.Group):
         pos = (self.half_with - TILESIZE // 2) + 10, (self.half_height - TILESIZE // 2) + 10
         #player.displayWeapon(self.display_surface, pos, angle)
         
-
+    def custom_draw_z(self, enemy):
+        if enemy is None:
+            return
+        # getting the offset
+        self.offset.x = enemy.rect.centerx - self.half_with
+        self.offset.y = enemy.rect.centery - self.half_height
+        
+        sprites_to_draw = []
+    
+        #for sprite in self.sprites():
+        for sprite in sorted(self.sprites(), key = lambda sprite: sprite.rect.centery):
+            offset_post = sprite.rect.topleft - self.offset
+            sprites_to_draw.append((sprite, offset_post))
             
+        # sort by the order
+        sprites_to_draw.sort(key = lambda sprite: sprite[0].order)
+      
         
