@@ -10,11 +10,15 @@ class Enemy(pygame.sprite.Sprite):
         self.visible_sprites = groups[0]
         self.level = level
         
-        self.anim_wake = SpriteSheet(pygame.image.load("./assets/player/wake.png"))
+        self.entities_sprites = groups[1]
+        self.isAlive = True
+        self.health = 100
+        
+        self.anim_wake = SpriteSheet(pygame.image.load("./assets/player/e_wake.png"))
         
         self.idle = self.anim_wake.get_image(4, (8, 0), (30, 26), 2)
         
-        self.walk = AnimatedSprite("./assets/player/move with FX.png", (0, 0), (42, 26), 2, 8)
+        self.walk = AnimatedSprite("./assets/player/e_move with FX.png", (0, 0), (42, 26), 2, 8)
         
         self.image = self.idle
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
@@ -41,7 +45,7 @@ class Enemy(pygame.sprite.Sprite):
         self.obstacle_sprites = obstacle_sprites
         
         self.isGrounded = False
-        self.lookDir = 0
+        self.lookDir = 1
         self.order = 10
         self.isJumping = False
         self.mouse_click = False
@@ -56,10 +60,13 @@ class Enemy(pygame.sprite.Sprite):
         distance = self.rect.centerx - self.level.player.rect.centerx
         if abs(distance) < self.range and abs(distance) > self.attackRange:
             if distance > 0:
-                self.direction.x = 1
-            else:
                 self.direction.x = -1
-                
+            else:
+                self.direction.x = 1
+            self.isMoving = True
+        else:
+            self.isMoving = False
+                            
         if abs(distance) < self.attackRange and pygame.time.get_ticks() - self.lastShot > 1000 / self.fireRate:
             if distance > 0:
                 self.shootingDirection = pygame.math.Vector2(-1, 0)
@@ -72,7 +79,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.isGrounded:
             self.direction.y = GRAVITY
         if not self.isJumping:
-            self.direction.y -= GRAVITY
+            self.direction.y += GRAVITY
         
     def jump(self, y):
         if self.isJumping:
@@ -99,7 +106,7 @@ class Enemy(pygame.sprite.Sprite):
             pos = (self.rect.left + TILESIZE, self.rect.centery - 5)
         
         self.lastShot = pygame.time.get_ticks()
-        Bullet(pos, [self.visible_sprites], self.shootingDirection)
+        Bullet(pos, [self.visible_sprites], self.shootingDirection, self.entities_sprites)
         
     def checkGrounded(self):
         grounded = False
@@ -150,6 +157,15 @@ class Enemy(pygame.sprite.Sprite):
                     if self.direction.y < 0 or self.isJumping:
                         self.hitbox.top = sprite.hitbox.bottom                  
      
+    def TakeDamage(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.die()
+    
+    def die(self):
+        self.isAlive = False
+        self.kill()
+         
     def update(self):
         self.input() 
         self.move(self.speed)
@@ -165,9 +181,10 @@ class Enemy(pygame.sprite.Sprite):
             
         # inverse image if moving left
         # print(self.direction.x, self.lookDir)
-        if self.direction.x < 0 and self.lookDir == 0:
-            #self.image = pygame.transform.flip(self.image, True, False)
-            self.lookDir = 1
-        elif self.direction.x > 0 and self.lookDir == 1:                
+        if self.direction.x < 0 and self.lookDir == 1:
             #self.image = pygame.transform.flip(self.image, True, False)
             self.lookDir = 0
+        elif self.direction.x > 0 and self.lookDir == 0:                
+            #self.image = pygame.transform.flip(self.image, True, False)
+            self.lookDir = 1
+                    

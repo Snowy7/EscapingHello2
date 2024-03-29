@@ -2,8 +2,11 @@ import pygame
 from settings import *
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, dir):
+    def __init__(self, pos, groups, dir, entities_sprites):
         super().__init__(groups)
+        
+        self.entities_sprites = entities_sprites
+        
         # line
         self.og_pos = pos
         self.image = pygame.Surface((10, 5))
@@ -26,3 +29,10 @@ class Bullet(pygame.sprite.Sprite):
         
         if pygame.time.get_ticks() - self.born > self.lifeTime:
             self.kill()
+            
+        # check for collision
+        hits = pygame.sprite.spritecollide(self, self.entities_sprites, False)
+        for hit in hits:
+            if hit != self:
+                hit.TakeDamage(10)
+                self.kill()

@@ -32,6 +32,11 @@ class Player(pygame.sprite.Sprite):
         self.visible_sprites = groups[0]
         self.level = level
         
+        self.isAlive = True
+        self.health = 100
+        
+        self.entities_sprites = groups[1]
+        
         self.anim_wake = SpriteSheet(pygame.image.load("./assets/player/wake.png"))
         
         self.idle = self.anim_wake.get_image(4, (8, 0), (30, 26), 2)
@@ -132,7 +137,7 @@ class Player(pygame.sprite.Sprite):
             pos = (self.rect.left - (TILESIZE/2 - 20), self.rect.centery - 5)
         else:
             pos = (self.rect.left + TILESIZE, self.rect.centery - 5)
-        Bullet(pos, [self.visible_sprites], self.shootingDirection)
+        Bullet(pos, [self.visible_sprites], self.shootingDirection, self.entities_sprites)
         
     def checkGrounded(self):
         grounded = False
@@ -201,10 +206,21 @@ class Player(pygame.sprite.Sprite):
                     self.didPressE = True
             else:
                 self.didPressE = False
-        
+    
+    def TakeDamage(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.die()
+    
+    def die(self):
+        self.isAlive = False    
+    
     def update(self):
         self.input() 
         self.move(self.speed)
+        
+        if self.hitbox.centery >= 3000:
+            self.isAlive = False
         
         if self.isMoving:
             self.walk.animate(self.lookDir)

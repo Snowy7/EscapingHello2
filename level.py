@@ -28,6 +28,7 @@ class Level:
         self.obstacle_sprites = pygame.sprite.Group()
         self.interactable_sprites = pygame.sprite.Group()
         self.background_sprites = pygame.sprite.Group()
+        self.entities_sprites = pygame.sprite.Group()
 
         # sprite set up
         #self.create_map()
@@ -41,7 +42,7 @@ class Level:
                 if col == 'w':
                     Wall((x, y), [self.visible_sprites, self.obstacle_sprites])
                 if col == 'p':
-                    self.player = Player((x, y), [self.visible_sprites], self, self.obstacle_sprites, self.interactable_sprites)
+                    self.player = Player((x, y), [self.visible_sprites, self.entities_sprites], self, self.obstacle_sprites, self.interactable_sprites)
                 if col == "t":
                     TestInteractable((x, y), [self.visible_sprites, self.interactable_sprites])
                 if col == "c":
@@ -51,7 +52,7 @@ class Level:
                 if col == 'g':
                     Ground((x, y), [self.visible_sprites, self.obstacle_sprites])
                 if col == 'z':
-                    self.enemy = Enemy((x, y), [self.visible_sprites, self.obstacle_sprites], self, self.obstacle_sprites)
+                    self.enemy = Enemy((x, y), [self.visible_sprites, self.entities_sprites], self, self.obstacle_sprites)
                 
 
     def get_player(self):
@@ -102,12 +103,12 @@ class Level:
     
     def Game(self):
         # update and draw game
-        self.visible_sprites.custom_draw(self.player)
-        self.visible_sprites.custom_draw_z(self.enemy)
+        self.visible_sprites.custom_draw(self.player, self.entities_sprites)
+        #self.visible_sprites.custom_draw_z(self.enemy)
         self.visible_sprites.update()
-        if self.player.hitbox.centery >= 3000:
+        
+        if not self.player.isAlive:
             self.gameState = 2
-            
         
     def GameOver(self):
         print('Game over!')
@@ -148,7 +149,7 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.half_height = self.display_surface.get_size()[1] // 2
         self.offset = pygame.math.Vector2()
 
-    def custom_draw(self, player):
+    def custom_draw(self, player, entities_sprites):
         if player is None:
             return
         # getting the offset
@@ -177,7 +178,12 @@ class YSortCameraGroup(pygame.sprite.Group):
         pos = (self.half_with - TILESIZE // 2) + 10, (self.half_height - TILESIZE // 2) + 10
         #player.displayWeapon(self.display_surface, pos, angle)
         
-    def custom_draw_z(self, enemy):
+        for sprite in entities_sprites:
+            # health bar
+            pygame.draw.rect(self.display_surface, (255, 0, 0), (sprite.rect.x - self.offset.x, sprite.rect.y - self.offset.y - 10, TILESIZE, 5))
+            pygame.draw.rect(self.display_surface, (0, 255, 0), (sprite.rect.x - self.offset.x, sprite.rect.y - self.offset.y - 10, TILESIZE * sprite.health / 100, 5))
+        
+"""     def custom_draw_z(self, enemy):
         if enemy is None:
             return
         # getting the offset
@@ -192,6 +198,6 @@ class YSortCameraGroup(pygame.sprite.Group):
             sprites_to_draw.append((sprite, offset_post))
             
         # sort by the order
-        sprites_to_draw.sort(key = lambda sprite: sprite[0].order)
+        sprites_to_draw.sort(key = lambda sprite: sprite[0].order) """
       
         
