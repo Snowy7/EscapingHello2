@@ -14,7 +14,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.image = self.frames[0]
         self.current_frame = 0
         self.last_update = 0
-        self.frame_rate = 60
+        self.frame_rate = FPS
     
     def animate(self, dir):
         now = pygame.time.get_ticks()
@@ -25,7 +25,6 @@ class AnimatedSprite(pygame.sprite.Sprite):
             
             if dir == 0:
                 self.image = pygame.transform.flip(self.image, True, False)
-        
 
 class Player(pygame.sprite.Sprite):
     def __init__ (self, pos, groups, level, obstacle_sprites, interactable_sprites):
@@ -224,4 +223,3 @@ class Player(pygame.sprite.Sprite):
         elif self.direction.x > 0 and self.lookDir == 0:                
             #self.image = pygame.transform.flip(self.image, True, False)
             self.lookDir = 1
-        

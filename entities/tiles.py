@@ -52,8 +52,15 @@ class Wall():
             "./assets/images/floor_stain_2.png",
             "./assets/images/floor_stain_3.png"
         ]
-        center = Tile("./assets/images/wall_center.png", pos, groups)
-        top = Tile("./assets/images/Wall_top_center.png", (pos[0], pos[1] - TILESIZE), [groups[0]])
+        self.center = Tile("./assets/images/wall_center.png", pos, groups)
+        self.top = Tile("./assets/images/Wall_top_center.png", (pos[0], pos[1] - TILESIZE), [groups[0]])
+        
+class PassageWall(Wall):
+    def __init__(self, pos, groups):
+        super().__init__(self, pos, groups)
+        
+        self.center.hitbox.inflate()
+        self.top.hitbox.inflate()
 
 class TestInteractable(Interactable):
     def __init__(self, pos, groups):
@@ -72,7 +79,6 @@ class BaseChest(Interactable):
         self.hitbox = self.rect.inflate(0, -10)
         
         self.canInteract = False
-
 
 class Chest(BaseChest):
     def __init__(self, pos, groups):

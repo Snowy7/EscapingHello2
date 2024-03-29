@@ -51,10 +51,11 @@ class Level:
                 if col == 'g':
                     Ground((x, y), [self.visible_sprites, self.obstacle_sprites])
                 if col == 'z':
-                    self.enemy = Enemy(x, y, self.obstacle_sprites)
+                    self.enemy = Enemy((x, y), [self.visible_sprites, self.obstacle_sprites], self, self.obstacle_sprites)
                 
 
-
+    def get_player(self):
+        return self.player
 
     def spawn_bullet(self, pos, dir):
         Bullet(pos, [self.visible_sprites], dir)
