@@ -219,7 +219,7 @@ class Player(pygame.sprite.Sprite):
         self.input() 
         self.move(self.speed)
         
-        if self.hitbox.centery >= 3000:
+        if self.hitbox.centery >= 5000:
             self.isAlive = False
         
         if self.isMoving:
