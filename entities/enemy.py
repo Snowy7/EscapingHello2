@@ -39,7 +39,7 @@ class Enemy(pygame.sprite.Sprite):
         self.range = TILESIZE * 5
         self.attackRange = TILESIZE * 2
         # How many bullets per second
-        self.fireRate = 3
+        self.fireRate = 1
         self.lastShot = pygame.time.get_ticks()
 
         self.obstacle_sprites = obstacle_sprites

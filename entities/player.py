@@ -45,16 +45,9 @@ class Player(pygame.sprite.Sprite):
         
         self.image = self.idle
         self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
-        
-        # add a weapon
-        self.weapon = pygame.image.load('./assets/images/rifle.png').convert_alpha()
-        self.weapon = pygame.transform.scale(self.weapon, (TILESIZE, TILESIZE))
-        self.weaponRect = self.weapon.get_rect(topleft = pos)
-        
+
         self.rect = self.image.get_rect(topleft = pos)
         self.hitbox = self.rect
-        self.groundHitbox = self.hitbox 
-        self.groundHitbox.y += 1
 
         self.direction = pygame.math.Vector2()
         self.shootingDirection = pygame.math.Vector2()
@@ -137,6 +130,7 @@ class Player(pygame.sprite.Sprite):
             pos = (self.rect.left - (TILESIZE/2 - 20), self.rect.centery - 5)
         else:
             pos = (self.rect.left + TILESIZE, self.rect.centery - 5)
+            
         Bullet(pos, [self.visible_sprites], self.shootingDirection, self.entities_sprites)
         
     def checkGrounded(self):
@@ -169,6 +163,8 @@ class Player(pygame.sprite.Sprite):
         if direction == 'horizontal':
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
+                    if hasattr(sprite, "canCollide") and not sprite.canCollide:
+                        continue
                     if self.direction.x > 0:  # moving right
                         self.hitbox.right = sprite.hitbox.left
                     if self.direction.x < 0:  # moving left
@@ -177,6 +173,8 @@ class Player(pygame.sprite.Sprite):
         if direction == 'vertical':
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
+                    if hasattr(sprite, "canCollide") and not sprite.canCollide:
+                        continue
                     if self.direction.y > 0:  # moving down
                         self.hitbox.bottom = sprite.hitbox.top
                     if self.direction.y < 0 or self.isJumping:
@@ -186,7 +184,7 @@ class Player(pygame.sprite.Sprite):
         isInteracting = False
         targetSprite = None
         for sprite in self.interactable_sprites:
-            if sprite.hitbox.colliderect(self.hitbox) and sprite.canInteract:
+            if sprite.interactBox.colliderect(self.hitbox) and sprite.canInteract:
                 isInteracting = True
                 targetSprite = sprite
                 break
@@ -195,7 +193,8 @@ class Player(pygame.sprite.Sprite):
             # Draw "Press E to interact" on the screen
             wind = pygame.display.get_surface()
             font = pygame.font.Font(None, 36)
-            text = font.render("Press E to interact", True, 'white')
+            msg = targetSprite.msg if hasattr(targetSprite, 'msg') else "Press E to interact"
+            text = font.render(msg, True, 'white')
             wind.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT - 100))
             # Check if E is down only once NOT HOLDING
             keys = pygame.key.get_pressed()
@@ -220,7 +219,7 @@ class Player(pygame.sprite.Sprite):
         self.move(self.speed)
         
         if self.hitbox.centery >= 5000:
-            self.isAlive = False
+            self.die()
         
         if self.isMoving:
             self.walk.animate(self.lookDir)

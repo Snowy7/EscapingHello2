@@ -1,8 +1,0 @@
-map = [
-    ["b", "c", "c2", "b"], # 0
-    ["b", "c", "c2", "b"],
-]
-
-for index, row in enumerate(map):
-    for index2, col in enumerate(row):
-        print(index2, col)
